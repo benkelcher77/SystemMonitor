@@ -6,6 +6,9 @@ object NVMLBridge {
         System.loadLibrary("nvml-bindings")
     }
 
-    external fun getNVMLVersion(): String
+    external fun nvmlInit(): Boolean
+    external fun nvmlShutdown(): Boolean
+
+    external fun nvmlDeviceGetFanSpeed(): Int
 
 }

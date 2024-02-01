@@ -11,35 +11,51 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import data.GPUDataRetriever
 import jni.NVMLBridge
 import ui.ViewMode
 import ui.ViewModeSelector
+import ui.gpu.GPUStatus
+import ui.gpu.GPUStatusViewModel
 
 @Composable
-fun SystemMonitor() {
+fun SystemMonitor(gpuViewModel: GPUStatusViewModel) {
     var viewMode by remember { mutableStateOf(ViewMode.CPU) }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        ViewModeSelector(viewMode) { viewMode = it }
+        ViewModeSelector(viewMode) {
+            viewMode = it
+            when (it) {
+                ViewMode.CPU -> {
+                    gpuViewModel.shutdown()
+                }
+                ViewMode.GPU -> {
+                    gpuViewModel.init()
+                }
+            }
+        }
         when (viewMode) {
             ViewMode.CPU -> {
-                Text(NVMLBridge.getNVMLVersion())
+                Text("Unimplemented")
             }
-            ViewMode.GPU -> Unit
+            ViewMode.GPU -> GPUStatus(gpuViewModel)
         }
     }
 }
 
 fun main() = application {
     val windowState = rememberWindowState()
+
+    val gpuViewModel = GPUStatusViewModel(GPUDataRetriever())
+
     Window(
         title = "System Monitor 1.0.0",
         state = windowState,
         onCloseRequest = ::exitApplication
     ) {
         MaterialTheme {
-            SystemMonitor()
+            SystemMonitor(gpuViewModel)
         }
     }
 }
