@@ -25,6 +25,7 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "MainKt"
+        jvmArgs += "-Djava.library.path=/home/ben/Dev/SystemMonitor/libs"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
