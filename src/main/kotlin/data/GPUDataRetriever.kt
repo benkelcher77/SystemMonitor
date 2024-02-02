@@ -4,14 +4,14 @@ import jni.NVMLBridge
 
 interface IGPUDataRetriever {
 
-    fun getTemp(): Float
+    fun getTemp(): Int
     fun getFanSpeedPercent(): Int
 
 }
 
 class GPUDataRetriever : IGPUDataRetriever {
-    override fun getTemp(): Float {
-        return 30f * (Math.random().toFloat()) // Dummy temperature data (for now!)
+    override fun getTemp(): Int {
+        return NVMLBridge.nvmlDeviceGetTemperature()
     }
 
     override fun getFanSpeedPercent(): Int {

@@ -10,7 +10,7 @@ class GPUStatusViewModel(
     private val dataRetriever: IGPUDataRetriever
 ) {
 
-    val gpuTempFlow: Flow<Float> = flow {
+    val gpuTempFlow: Flow<Int> = flow {
         while (true) {
             val gpuTemp = dataRetriever.getTemp()
             emit(gpuTemp)

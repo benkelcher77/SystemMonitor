@@ -2,14 +2,14 @@ package data
 
 interface ICPUDataRetriever {
 
-    fun getCPUTemp(): Float
+    fun getCPUTemp(): Int
     fun getCPUFanRPM(): Int
 
 }
 
 class CPUDataRetriever : ICPUDataRetriever {
-    override fun getCPUTemp(): Float {
-        return 30f
+    override fun getCPUTemp(): Int {
+        return 30
     }
 
     override fun getCPUFanRPM(): Int {

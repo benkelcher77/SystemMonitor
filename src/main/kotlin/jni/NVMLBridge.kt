@@ -10,5 +10,6 @@ object NVMLBridge {
     external fun nvmlShutdown(): Boolean
 
     external fun nvmlDeviceGetFanSpeed(): Int
+    external fun nvmlDeviceGetTemperature(): Int
 
 }
