@@ -22,6 +22,20 @@ dependencies {
     implementation(compose.desktop.currentOs)
 }
 
+tasks.register(name = "compileNativeLibs", type = Exec::class) {
+    description = "Generate libnvml-bindings.so and copy to the libs/ directory."
+
+    val dir = "${project.projectDir.absolutePath}/src/native"
+
+    // TODO Figure out how to load environment variables in Gradle.
+    environment("JAVA_HOME", "/usr/lib/jvm/java-18-openjdk-amd64")
+    commandLine("/bin/bash", "${dir}/build.sh")
+
+
+}
+
+tasks["jar"].dependsOn("compileNativeLibs")
+
 compose.desktop {
     application {
         mainClass = "MainKt"
@@ -34,3 +48,4 @@ compose.desktop {
         }
     }
 }
+
