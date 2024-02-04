@@ -10,32 +10,39 @@ class GPUStatusViewModel(
     private val dataRetriever: IGPUDataRetriever
 ) {
 
+    @Volatile
+    private var nvmlInitialized = false
+
     val gpuTempFlow: Flow<Int> = flow {
         while (true) {
-            val gpuTemp = dataRetriever.getTemp()
-            emit(gpuTemp)
+            if (nvmlInitialized) {
+                val gpuTemp = dataRetriever.getTemp()
+                emit(gpuTemp)
+            }
             delay(REFRESH_DELAY)
         }
     }
 
     val gpuFanFlow: Flow<Int> = flow {
         while (true) {
-            val fanPercentage = dataRetriever.getFanSpeedPercent()
-            emit(fanPercentage)
+            if (nvmlInitialized) {
+                val fanPercentage = dataRetriever.getFanSpeedPercent()
+                emit(fanPercentage)
+            }
             delay(REFRESH_DELAY)
         }
     }
 
     fun init() {
-        NVMLBridge.nvmlInit()
+        if (NVMLBridge.nvmlInit()) nvmlInitialized = true
     }
 
     fun shutdown() {
-        NVMLBridge.nvmlShutdown()
+        if (NVMLBridge.nvmlShutdown()) nvmlInitialized = false
     }
 
     companion object {
-        private const val REFRESH_DELAY = 2000L
+        private const val REFRESH_DELAY = 200L
     }
 
 }
