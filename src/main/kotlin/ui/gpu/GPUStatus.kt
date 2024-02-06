@@ -1,8 +1,10 @@
 package ui.gpu
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ui.LineChart
@@ -36,33 +38,47 @@ fun GPUStatus(
         ))
     }
 
-    LaunchedEffect(Unit) {
-        vm.gpuTempFlow.collect {
-            val shiftedPoints = gpuTempChart.points
-                .map { point -> Pair(point.first - 1, point.second) }
-                .filter { point -> point.first >= 0 }
-                .toMutableList()
+    var displayedHistorySize by remember { mutableStateOf(100) }
+    LaunchedEffect(displayedHistorySize) {
+        gpuTempChart = gpuTempChart.copy(xRange = 0 to displayedHistorySize)
+        gpuFanChart = gpuFanChart.copy(xRange = 0 to displayedHistorySize)
+    }
 
-            shiftedPoints.add(gpuTempChart.xMax() to it)
-            gpuTempChart = gpuTempChart.copy(points = shiftedPoints)
+    LaunchedEffect(Unit) {
+        vm.gpuTempHistoryFlow.collect { history ->
+            gpuTempChart = gpuTempChart.copy(
+                points = history
+                    .dropLast((history.size - displayedHistorySize).coerceAtLeast(0))
+                    .mapIndexed { index, temp ->
+                        Pair(displayedHistorySize - 1 - index, temp)
+                    }
+            )
         }
     }
 
     LaunchedEffect(Unit) {
-        vm.gpuFanFlow.collect {
-            val shiftedPoints = gpuFanChart.points
-                .map { point -> Pair(point.first - 1, point.second) }
-                .filter { point -> point.first >= 0 }
-                .toMutableList()
-
-            shiftedPoints.add(gpuFanChart.xMax() to it)
-            gpuFanChart = gpuFanChart.copy(points = shiftedPoints)
+        vm.gpuFanHistoryFlow.collect { history ->
+            gpuFanChart = gpuFanChart.copy(
+                points = history
+                    .dropLast((history.size - displayedHistorySize).coerceAtLeast(0))
+                    .mapIndexed { index, fanPercentage ->
+                        Pair(displayedHistorySize - 1 - index, fanPercentage)
+                    }
+            )
         }
     }
 
     Column(
         modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Button(onClick = { displayedHistorySize = (displayedHistorySize - 1).coerceAtLeast(8) }) { Text("<") }
+            Text("Displayed Entries: $displayedHistorySize")
+            Button(onClick = { displayedHistorySize = (displayedHistorySize + 1).coerceAtMost(GPUStatusViewModel.HISTORY_BUFFER_COUNT) }) { Text(">") }
+        }
         LineChart(modifier = Modifier.fillMaxWidth().weight(1f).padding(4.dp), data = gpuTempChart)
         LineChart(modifier = Modifier.fillMaxWidth().weight(1f).padding(4.dp), data = gpuFanChart)
     }

@@ -3,8 +3,8 @@ package ui.gpu
 import data.IGPUDataRetriever
 import jni.NVMLBridge
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
+import util.FlowUtils.accumulate
 
 class GPUStatusViewModel(
     private val dataRetriever: IGPUDataRetriever
@@ -23,6 +23,10 @@ class GPUStatusViewModel(
         }
     }
 
+    val gpuTempHistoryFlow = gpuTempFlow
+        .accumulate(HISTORY_BUFFER_COUNT)
+        .transform { emit(it.reversed()) }
+
     val gpuFanFlow: Flow<Int> = flow {
         while (true) {
             if (nvmlInitialized) {
@@ -32,6 +36,10 @@ class GPUStatusViewModel(
             delay(REFRESH_DELAY)
         }
     }
+
+    val gpuFanHistoryFlow = gpuFanFlow
+        .accumulate(HISTORY_BUFFER_COUNT)
+        .transform { emit(it.reversed()) }
 
     fun init() {
         if (NVMLBridge.nvmlInit()) nvmlInitialized = true
@@ -43,6 +51,7 @@ class GPUStatusViewModel(
 
     companion object {
         private const val REFRESH_DELAY = 200L
+        const val HISTORY_BUFFER_COUNT = 1024
     }
 
 }

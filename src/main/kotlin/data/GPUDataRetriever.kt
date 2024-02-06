@@ -10,6 +10,7 @@ interface IGPUDataRetriever {
 }
 
 class GPUDataRetriever : IGPUDataRetriever {
+
     override fun getTemp(): Int {
         return NVMLBridge.nvmlDeviceGetTemperature()
     }
