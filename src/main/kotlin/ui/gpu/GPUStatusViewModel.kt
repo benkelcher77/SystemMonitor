@@ -1,6 +1,7 @@
 package ui.gpu
 
 import data.IGPUDataRetriever
+import data.MemoryInfo
 import jni.NVMLBridge
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -38,6 +39,20 @@ class GPUStatusViewModel(
     }
 
     val gpuFanHistoryFlow = gpuFanFlow
+        .accumulate(HISTORY_BUFFER_COUNT)
+        .transform { emit(it.reversed()) }
+
+    val gpuMemoryInfoFlow: Flow<MemoryInfo> = flow {
+        while (true) {
+            if (nvmlInitialized) {
+                val info = dataRetriever.getMemoryInfo()
+                emit(info)
+            }
+            delay(REFRESH_DELAY)
+        }
+    }
+
+    val gpuMemoryInfoHistoryFlow = gpuMemoryInfoFlow
         .accumulate(HISTORY_BUFFER_COUNT)
         .transform { emit(it.reversed()) }
 

@@ -1,21 +1,30 @@
 package ui.gpu
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import ui.LineChart
-import ui.LineChartData
+import data.MemoryInfo
+import jni.NVMLBridge
+import ui.common.Collapsible
+import ui.common.LineChart
+import ui.common.LineChartData
+import util.SizeUnitUtils
 
 @Composable
 fun GPUStatus(
     vm: GPUStatusViewModel
 ) {
     var gpuTempChart by remember {
-        mutableStateOf(LineChartData(
+        mutableStateOf(
+            LineChartData(
             points = emptyList(),
             xRange = 0 to 100,
             yRange = 20 to 80,
@@ -23,11 +32,13 @@ fun GPUStatus(
             yTicks = (2..8).map {
                 it * 10 to (it * 10).toString()
             },
-        ))
+        )
+        )
     }
 
     var gpuFanChart by remember {
-        mutableStateOf(LineChartData(
+        mutableStateOf(
+            LineChartData(
             points = emptyList(),
             xRange = 0 to 100,
             yRange = 0 to 100,
@@ -35,6 +46,19 @@ fun GPUStatus(
             yTicks = (0..10).map {
                 it * 10 to (it * 10).toString()
             },
+        )
+        )
+    }
+
+    var gpuMemoryChart by remember {
+        mutableStateOf(LineChartData(
+            points = emptyList(),
+            xRange = 0 to 100,
+            yRange = 0.0 to 100.0,
+            xTicks = emptyList(),
+            yTicks = (0..10).map {
+                (it * 10).toFloat() to (it * 10).toString()
+            }
         ))
     }
 
@@ -42,6 +66,7 @@ fun GPUStatus(
     LaunchedEffect(displayedHistorySize) {
         gpuTempChart = gpuTempChart.copy(xRange = 0 to displayedHistorySize)
         gpuFanChart = gpuFanChart.copy(xRange = 0 to displayedHistorySize)
+        gpuMemoryChart = gpuMemoryChart.copy(xRange = 0 to displayedHistorySize)
     }
 
     LaunchedEffect(Unit) {
@@ -68,6 +93,22 @@ fun GPUStatus(
         }
     }
 
+    LaunchedEffect(Unit) {
+        vm.gpuMemoryInfoHistoryFlow.collect { history ->
+            gpuMemoryChart = gpuMemoryChart.copy(
+                points = history
+                    .dropLast((history.size - displayedHistorySize).coerceAtLeast(0))
+                    .mapIndexed { index, memory ->
+                        Pair(displayedHistorySize - 1 - index, (memory.used / memory.total).toDouble())
+                    }
+            )
+        }
+    }
+
+    val currentTemp by vm.gpuTempFlow.collectAsState(0)
+    val currentFanSpeed by vm.gpuFanFlow.collectAsState(0)
+    val currentGPUMemoryInfo by vm.gpuMemoryInfoFlow.collectAsState(MemoryInfo(1, 1, 0))
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -79,7 +120,49 @@ fun GPUStatus(
             Text("Displayed Entries: $displayedHistorySize")
             Button(onClick = { displayedHistorySize = (displayedHistorySize + 1).coerceAtMost(GPUStatusViewModel.HISTORY_BUFFER_COUNT) }) { Text(">") }
         }
-        LineChart(modifier = Modifier.fillMaxWidth().weight(1f).padding(4.dp), data = gpuTempChart)
-        LineChart(modifier = Modifier.fillMaxWidth().weight(1f).padding(4.dp), data = gpuFanChart)
+        Text("NVIDIA Driver Version ${NVMLBridge.nvmlSystemGetDriverVersion()}")
+
+        @Composable
+        fun CollapsedContent(text: String, open: Boolean) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = Color.LightGray, shape = RoundedCornerShape(4.dp))
+                    .border(width = 2.dp, color = Color.DarkGray)
+                    .padding(4.dp),
+                text = "${if (open) "v" else ">"} | $text"
+            )
+        }
+
+        Collapsible(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            weight = 1f,
+            collapsedContent = { open ->
+                CollapsedContent("GPU Temperature (${currentTemp}°C)", open)
+            }
+        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuTempChart) }
+
+        Collapsible(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            weight = 1f,
+            collapsedContent = { open ->
+                CollapsedContent("GPU Fan Speed (${currentFanSpeed}%)", open)
+            }
+        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuFanChart) }
+
+        val gpuMemoryUsageString = "${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.used.toDouble()).displayString()} / ${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.total.toDouble()).displayString()}"
+        Collapsible(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            weight = 1f,
+            collapsedContent = { open ->
+                CollapsedContent("GPU Memory Usage ($gpuMemoryUsageString)", open)
+            }
+        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuMemoryChart) }
     }
 }

@@ -1,7 +1,6 @@
-package ui
+package ui.common
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,27 +11,27 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 
-data class LineChartData<Type : Number>(
-    val points: List<Pair<Type, Type>>,
-    val xRange: Pair<Type, Type>,
-    val yRange: Pair<Type, Type>,
+data class LineChartData<TypeX : Number, TypeY: Number>(
+    val points: List<Pair<TypeX, TypeY>>,
+    val xRange: Pair<TypeX, TypeX>,
+    val yRange: Pair<TypeY, TypeY>,
 
-    val xTicks: List<Pair<Type, String>>,
-    val yTicks: List<Pair<Type, String>>,
+    val xTicks: List<Pair<TypeX, String>>,
+    val yTicks: List<Pair<TypeY, String>>,
 ) {
-    fun xMin(): Type = xRange.first
-    fun xMax(): Type = xRange.second
-    fun yMin(): Type = yRange.first
-    fun yMax(): Type = yRange.second
+    fun xMin(): TypeX = xRange.first
+    fun xMax(): TypeX = xRange.second
+    fun yMin(): TypeY = yRange.first
+    fun yMax(): TypeY = yRange.second
 }
 
 internal fun remap(x: Number, oldMin: Number, oldMax: Number, newMin: Number, newMax: Number): Float =
     (x.toFloat() - oldMin.toFloat()) / (oldMax.toFloat() - oldMin.toFloat()) * (newMax.toFloat() - newMin.toFloat()) + newMin.toFloat()
 
 @Composable
-fun <Type : Number> LineChart(
+fun <TypeX : Number, TypeY: Number> LineChart(
     modifier: Modifier = Modifier,
-    data: LineChartData<Type>? = null,
+    data: LineChartData<TypeX, TypeY>? = null,
 ) {
     var layout: LayoutCoordinates? = null
     val textMeasurer = rememberTextMeasurer()
