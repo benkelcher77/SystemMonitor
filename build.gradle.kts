@@ -28,7 +28,7 @@ tasks.register(name = "compileNativeLibs", type = Exec::class) {
     val dir = "${project.projectDir.absolutePath}/src/native"
 
     // TODO Figure out how to load environment variables in Gradle.
-    environment("JAVA_HOME", "/usr/lib/jvm/java-18-openjdk-amd64")
+    environment("JAVA_HOME", "/usr/lib/jvm/java-21-openjdk")
     commandLine("/bin/bash", "${dir}/build.sh")
 
 

@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import data.GPUDataRetriever
@@ -45,7 +46,7 @@ fun SystemMonitor(gpuViewModel: GPUStatusViewModel) {
 }
 
 fun main() = application {
-    val windowState = rememberWindowState()
+    val windowState = rememberWindowState(WindowPlacement.Fullscreen)
 
     val gpuViewModel = GPUStatusViewModel(GPUDataRetriever())
 
