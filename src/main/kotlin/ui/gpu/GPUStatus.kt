@@ -4,19 +4,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import data.MemoryInfo
-import jni.NVMLBridge
 import ui.common.Collapsible
 import ui.common.LineChart
 import ui.common.LineChartData
 import util.SizeUnitUtils
+
+internal const val MIN_ENTRIES_SHOWN = 32
+internal const val ENTRIES_STEP_SIZE = 32
 
 @Composable
 fun GPUStatus(
@@ -62,7 +63,7 @@ fun GPUStatus(
         ))
     }
 
-    var displayedHistorySize by remember { mutableStateOf(100) }
+    var displayedHistorySize by remember { mutableStateOf(128) }
     LaunchedEffect(displayedHistorySize) {
         gpuTempChart = gpuTempChart.copy(xRange = 0 to displayedHistorySize)
         gpuFanChart = gpuFanChart.copy(xRange = 0 to displayedHistorySize)
@@ -116,11 +117,23 @@ fun GPUStatus(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Button(onClick = { displayedHistorySize = (displayedHistorySize - 1).coerceAtLeast(8) }) { Text("<") }
-            Text("Displayed Entries: $displayedHistorySize")
-            Button(onClick = { displayedHistorySize = (displayedHistorySize + 1).coerceAtMost(GPUStatusViewModel.HISTORY_BUFFER_COUNT) }) { Text(">") }
+            var sliderValue by remember { mutableStateOf(displayedHistorySize.toFloat()) }
+
+            Text(text = "${sliderValue.toInt()} Entries")
+
+            // TODO Make a wrapper over this that uses Int rather than Float.
+            Slider(
+                value = sliderValue,
+                valueRange = MIN_ENTRIES_SHOWN.toFloat()..GPUStatusViewModel.HISTORY_BUFFER_COUNT.toFloat(),
+                onValueChange = { value -> sliderValue = value },
+                onValueChangeFinished = { displayedHistorySize = sliderValue.toInt() },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Red,
+                    activeTrackColor = Color.Red,
+                    inactiveTrackColor = Color.DarkGray,
+                ),
+            )
         }
-        Text("NVIDIA Driver Version ${NVMLBridge.nvmlSystemGetDriverVersion()}")
 
         @Composable
         fun CollapsedContent(text: String, open: Boolean) {
