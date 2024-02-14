@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import data.MemoryInfo
 import ui.common.Collapsible
 import ui.common.LineChart
+import ui.common.LineChartConfig
 import ui.common.LineChartData
 import util.SizeUnitUtils
 
@@ -65,7 +66,12 @@ fun GPUStatus(
 
     var displayedHistorySize by remember { mutableStateOf(128) }
     LaunchedEffect(displayedHistorySize) {
-        gpuTempChart = gpuTempChart.copy(xRange = 0 to displayedHistorySize)
+        gpuTempChart = gpuTempChart.copy(
+            xRange = 0 to displayedHistorySize,
+            xTicks = (0..10).map {
+                it * displayedHistorySize / 10 to ""
+            }
+        )
         gpuFanChart = gpuFanChart.copy(xRange = 0 to displayedHistorySize)
         gpuMemoryChart = gpuMemoryChart.copy(xRange = 0 to displayedHistorySize)
     }
@@ -155,7 +161,18 @@ fun GPUStatus(
             collapsedContent = { open ->
                 CollapsedContent("GPU Temperature (${currentTemp}°C)", open)
             }
-        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuTempChart) }
+        ) {
+            LineChart(
+                modifier = Modifier.fillMaxSize(),
+                data = gpuTempChart,
+                config = LineChartConfig(
+                    lineThickness = 2f,
+                    lineColor = Color.Red,
+                    tickThickness = 1f,
+                    extendTicks = true
+                )
+            )
+        }
 
         Collapsible(
             modifier = Modifier
