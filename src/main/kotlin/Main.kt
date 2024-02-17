@@ -39,7 +39,7 @@ fun SystemMonitor(gpuViewModel: GPUStatusViewModel) {
         }
         when (viewMode) {
             ViewMode.CPU -> {
-                Text("Unimplemented")
+                Text("[CPU] Unimplemented")
             }
             ViewMode.GPU -> GPUStatus(gpuViewModel)
         }

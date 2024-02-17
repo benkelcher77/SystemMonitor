@@ -120,27 +120,6 @@ fun GPUStatus(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            var sliderValue by remember { mutableStateOf(displayedHistorySize.toFloat()) }
-
-            Text(text = "${sliderValue.toInt()} Entries")
-
-            // TODO Make a wrapper over this that uses Int rather than Float.
-            Slider(
-                value = sliderValue,
-                valueRange = MIN_ENTRIES_SHOWN.toFloat()..GPUStatusViewModel.HISTORY_BUFFER_COUNT.toFloat(),
-                onValueChange = { value -> sliderValue = value },
-                onValueChangeFinished = { displayedHistorySize = sliderValue.toInt() },
-                colors = SliderDefaults.colors(
-                    thumbColor = Color.Red,
-                    activeTrackColor = Color.Red,
-                    inactiveTrackColor = Color.DarkGray,
-                ),
-            )
-        }
-
         @Composable
         fun CollapsedContent(text: String, open: Boolean) {
             Text(
@@ -194,5 +173,26 @@ fun GPUStatus(
                 CollapsedContent("GPU Memory Usage ($gpuMemoryUsageString)", open)
             }
         ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuMemoryChart) }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            var sliderValue by remember { mutableStateOf(displayedHistorySize.toFloat()) }
+
+            Text(text = "${sliderValue.toInt()} Entries")
+
+            // TODO Make a wrapper over this that uses Int rather than Float.
+            Slider(
+                value = sliderValue,
+                valueRange = MIN_ENTRIES_SHOWN.toFloat()..GPUStatusViewModel.HISTORY_BUFFER_COUNT.toFloat(),
+                onValueChange = { value -> sliderValue = value },
+                onValueChangeFinished = { displayedHistorySize = sliderValue.toInt() },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Red,
+                    activeTrackColor = Color.Red,
+                    inactiveTrackColor = Color.DarkGray,
+                ),
+            )
+        }
     }
 }
