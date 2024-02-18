@@ -11,10 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import data.MemoryInfo
-import ui.common.Collapsible
-import ui.common.LineChart
-import ui.common.LineChartConfig
-import ui.common.LineChartData
+import ui.common.*
 import util.SizeUnitUtils
 
 internal const val MIN_ENTRIES_SHOWN = 32
@@ -121,24 +118,27 @@ fun GPUStatus(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         @Composable
-        fun CollapsedContent(text: String, open: Boolean) {
+        fun CollapsedContent(text: String, state: CollapsibleState) {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = Color.LightGray, shape = RoundedCornerShape(4.dp))
                     .border(width = 2.dp, color = Color.DarkGray)
                     .padding(4.dp),
-                text = "${if (open) "v" else ">"} | $text"
+                text = "${if (state is CollapsibleState.Shown) "v" else ">"} | $text"
             )
         }
 
+        var gpuTempDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Shown) }
         Collapsible(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
             weight = 1f,
-            collapsedContent = { open ->
-                CollapsedContent("GPU Temperature (${currentTemp}°C)", open)
+            state = gpuTempDropDownState,
+            onStateChanged = { state -> gpuTempDropDownState = state },
+            collapsedContent = { state ->
+                CollapsedContent("GPU Temperature (${currentTemp}°C)", state)
             }
         ) {
             LineChart(
@@ -153,24 +153,30 @@ fun GPUStatus(
             )
         }
 
+        var gpuFanSpeedDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Collapsed) }
         Collapsible(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
             weight = 1f,
-            collapsedContent = { open ->
-                CollapsedContent("GPU Fan Speed (${currentFanSpeed}%)", open)
+            state = gpuFanSpeedDropDownState,
+            onStateChanged = { state -> gpuFanSpeedDropDownState = state },
+            collapsedContent = { state ->
+                CollapsedContent("GPU Fan Speed (${currentFanSpeed}%)", state)
             }
         ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuFanChart) }
 
         val gpuMemoryUsageString = "${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.used.toDouble()).displayString()} / ${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.total.toDouble()).displayString()}"
+        var gpuMemoryUsageDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Collapsed) }
         Collapsible(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
             weight = 1f,
-            collapsedContent = { open ->
-                CollapsedContent("GPU Memory Usage ($gpuMemoryUsageString)", open)
+            state = gpuMemoryUsageDropDownState,
+            onStateChanged = { state -> gpuMemoryUsageDropDownState = state },
+            collapsedContent = { state ->
+                CollapsedContent("GPU Memory Usage ($gpuMemoryUsageString)", state)
             }
         ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuMemoryChart) }
 

@@ -8,30 +8,38 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 
 
+sealed interface CollapsibleState {
+    object Collapsed : CollapsibleState
+    object Shown : CollapsibleState
+}
+
 @Composable
 fun ColumnScope.Collapsible(
     modifier: Modifier = Modifier,
     weight: Float = 1f,
-    collapsedContent: @Composable (open: Boolean) -> Unit,
+    state: CollapsibleState,
+    onStateChanged: (CollapsibleState) -> Unit,
+    collapsedContent: @Composable (state: CollapsibleState) -> Unit,
     fullContent: @Composable () -> Unit,
 ) {
-    var open by remember { mutableStateOf(true) }
-    if (open) {
-        Column(
-            modifier = modifier.weight(weight)
-        ) {
-            Box(
-                modifier = Modifier.clickable { open = false }
+    when (state) {
+        CollapsibleState.Shown ->
+            Column(
+                modifier = modifier.weight(weight)
             ) {
-                collapsedContent(open)
+                Box(
+                    modifier = Modifier.clickable { onStateChanged(CollapsibleState.Collapsed) }
+                ) {
+                    collapsedContent(state)
+                }
+                fullContent()
             }
-            fullContent()
-        }
-    } else {
-        Box(
-            modifier = modifier.clickable { open = true }
-        ) {
-            collapsedContent(open)
+        CollapsibleState.Collapsed -> {
+            Box(
+                modifier = modifier.clickable { onStateChanged(CollapsibleState.Shown) }
+            ) {
+                collapsedContent(state)
+            }
         }
     }
 }
