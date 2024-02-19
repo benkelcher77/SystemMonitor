@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 
-
 sealed interface CollapsibleState {
     object Collapsed : CollapsibleState
     object Shown : CollapsibleState
