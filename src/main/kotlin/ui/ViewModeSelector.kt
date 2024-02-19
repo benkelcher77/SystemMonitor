@@ -19,21 +19,6 @@ fun ViewModeSelector(
     currentViewMode: ViewMode,
     setViewMode: (ViewMode) -> Unit,
 ) {
-    /*Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        ViewMode.entries.forEach {
-            Button(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp),
-                onClick = { setViewMode(it) }
-            ) {
-                Text(it.name, color = if (it == currentViewMode) Color.Black else Color.Gray)
-            }
-        }
-    }*/
     var expanded by remember { mutableStateOf(false) }
     Row {
         IconButton(

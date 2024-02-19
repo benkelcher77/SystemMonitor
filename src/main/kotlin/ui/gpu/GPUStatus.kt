@@ -5,17 +5,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import data.MemoryInfo
+import jni.NVMLBridge
 import ui.common.*
 import util.SizeUnitUtils
 
 internal const val MIN_ENTRIES_SHOWN = 32
-internal const val ENTRIES_STEP_SIZE = 32
 
 @Composable
 fun GPUStatus(
@@ -119,14 +123,41 @@ fun GPUStatus(
     ) {
         @Composable
         fun CollapsedContent(text: String, state: CollapsibleState) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color.LightGray, shape = RoundedCornerShape(4.dp))
-                    .border(width = 2.dp, color = Color.DarkGray)
-                    .padding(4.dp),
-                text = "${if (state is CollapsibleState.Shown) "v" else ">"} | $text"
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .rotate(
+                            when (state) {
+                                CollapsibleState.Collapsed -> -90f
+                                CollapsibleState.Shown -> 0f
+                            }
+                        ),
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                )
+                Text(text)
+            }
+        }
+
+        var gpuVersionInfoDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Shown) }
+        Collapsible(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            weight = 0f,
+            state = gpuVersionInfoDropDownState,
+            onStateChanged = { state -> gpuVersionInfoDropDownState = state },
+            collapsedContent = { state ->
+                CollapsedContent("GPU Information", state)
+            }
+        ) {
+            Column {
+                Text("NVIDIA Driver Version: ${vm.nvidiaDriverVersion}")
+                Text("CUDA Driver Version: ${vm.cudaDriverVersion}")
+                Text("NVML Version: ${vm.nvmlVersion}")
+            }
         }
 
         var gpuTempDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Shown) }
@@ -145,6 +176,7 @@ fun GPUStatus(
                 modifier = Modifier.fillMaxSize(),
                 data = gpuTempChart,
                 config = LineChartConfig(
+                    backgroundColor = Color.White,
                     lineThickness = 2f,
                     lineColor = Color.Red,
                     tickThickness = 1f,
@@ -164,7 +196,19 @@ fun GPUStatus(
             collapsedContent = { state ->
                 CollapsedContent("GPU Fan Speed (${currentFanSpeed}%)", state)
             }
-        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuFanChart) }
+        ) {
+            LineChart(
+                modifier = Modifier.fillMaxSize(),
+                data = gpuFanChart,
+                config = LineChartConfig(
+                    backgroundColor = Color.White,
+                    lineThickness = 2f,
+                    lineColor = Color.Red,
+                    tickThickness = 1f,
+                    extendTicks = true
+                )
+            )
+        }
 
         val gpuMemoryUsageString = "${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.used.toDouble()).displayString()} / ${SizeUnitUtils.bytesToHumanReadable(currentGPUMemoryInfo.total.toDouble()).displayString()}"
         var gpuMemoryUsageDropDownState: CollapsibleState by remember { mutableStateOf(CollapsibleState.Collapsed) }
@@ -178,7 +222,19 @@ fun GPUStatus(
             collapsedContent = { state ->
                 CollapsedContent("GPU Memory Usage ($gpuMemoryUsageString)", state)
             }
-        ) { LineChart(modifier = Modifier.fillMaxSize(), data = gpuMemoryChart) }
+        ) {
+            LineChart(
+                modifier = Modifier.fillMaxSize(),
+                data = gpuMemoryChart,
+                config = LineChartConfig(
+                    backgroundColor = Color.White,
+                    lineThickness = 2f,
+                    lineColor = Color.Red,
+                    tickThickness = 1f,
+                    extendTicks = true
+                )
+            )
+        }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,

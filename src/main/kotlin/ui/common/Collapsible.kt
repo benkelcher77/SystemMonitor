@@ -22,10 +22,16 @@ fun ColumnScope.Collapsible(
     collapsedContent: @Composable (state: CollapsibleState) -> Unit,
     fullContent: @Composable () -> Unit,
 ) {
+    val shownModifier =
+        if (weight == 0f)
+            modifier
+        else
+            modifier.weight(weight)
+
     when (state) {
         CollapsibleState.Shown ->
             Column(
-                modifier = modifier.weight(weight)
+                modifier = shownModifier
             ) {
                 Box(
                     modifier = Modifier.clickable { onStateChanged(CollapsibleState.Collapsed) }
