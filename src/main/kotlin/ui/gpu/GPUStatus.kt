@@ -69,10 +69,22 @@ fun GPUStatus(
             xRange = 0 to displayedHistorySize,
             xTicks = (0..10).map {
                 it * displayedHistorySize / 10 to ""
-            }
+            },
         )
-        gpuFanChart = gpuFanChart.copy(xRange = 0 to displayedHistorySize)
-        gpuMemoryChart = gpuMemoryChart.copy(xRange = 0 to displayedHistorySize)
+
+        gpuFanChart = gpuFanChart.copy(
+            xRange = 0 to displayedHistorySize,
+            xTicks = (0..10).map {
+                it * displayedHistorySize / 10 to ""
+            },
+        )
+
+        gpuMemoryChart = gpuMemoryChart.copy(
+            xRange = 0 to displayedHistorySize,
+            xTicks = (0..10).map {
+                it * displayedHistorySize / 10 to ""
+            },
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -151,7 +163,9 @@ fun GPUStatus(
                 CollapsedContent("GPU Information", state)
             }
         ) {
-            Column {
+            Column(
+                modifier = Modifier.padding(start = 4.dp)
+            ) {
                 Text("NVIDIA Driver Version: ${vm.nvidiaDriverVersion}")
                 Text("CUDA Driver Version: ${vm.cudaDriverVersion}")
                 Text("NVML Version: ${vm.nvmlVersion}")
@@ -235,6 +249,7 @@ fun GPUStatus(
         }
 
         Row(
+            modifier = Modifier.padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             var sliderValue by remember { mutableStateOf(displayedHistorySize.toFloat()) }
