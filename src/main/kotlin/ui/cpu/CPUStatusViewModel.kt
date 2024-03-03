@@ -12,7 +12,7 @@ class CPUStatusViewModel(
     @Volatile
     private var running: Boolean = false
 
-    val cpuUsageFlow: Flow<String> = flow {
+    val cpuUsageFlow: Flow<Float> = flow {
         while (true) {
             if (running) {
                 val usage = dataRetriever.getCPUUsage()

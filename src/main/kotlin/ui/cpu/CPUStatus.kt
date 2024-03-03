@@ -7,6 +7,6 @@ import androidx.compose.runtime.getValue
 
 @Composable
 fun CPUStatus(viewModel: CPUStatusViewModel) {
-    val usage by viewModel.cpuUsageFlow.collectAsState("NOT INITIALIZED")
-    Text(usage)
+    val usage by viewModel.cpuUsageFlow.collectAsState(100f)
+    Text(usage.toString())
 }
