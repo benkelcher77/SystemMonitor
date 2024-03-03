@@ -20,7 +20,7 @@ class CPUDataRetriever : ICPUDataRetriever {
     }
 
     override fun getCPUUsage(): Float =
-        "cat /proc/stat".runAsProcess()
+        CPU_STAT_CMD.runAsProcess()
             ?.trim()
             ?.split("\n")?.firstOrNull() // Overall CPU usage is on the first line of /proc/stat
             ?.split("\\s+".toRegex())
@@ -31,6 +31,7 @@ class CPUDataRetriever : ICPUDataRetriever {
             } ?: -1f
 
     companion object {
+        const val CPU_STAT_CMD = "cat /proc/stat"
         const val CPU_USAGE_IDLE_INDEX = 3
     }
 }
